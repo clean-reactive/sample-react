@@ -1,42 +1,45 @@
 import type { ApiHttpClient } from "../types";
-import { HttpClient } from "../httpClient";
+import { makeHttpClient } from "../httpClient";
 import type { ApiOrderDto } from "./ApiOrders.types";
 
 const baseUrl = import.meta.env.BASE_URL;
 export const apiOrdersResource = `${baseUrl}api/orders`;
 
-export class ApiOrders {
-  static make(): ApiOrders {
-    return new ApiOrders(HttpClient.make());
-  }
+export const getOrders = async (httpClient: ApiHttpClient): Promise<ApiOrderDto[]> => {
+  const request = new Request(apiOrdersResource, { method: "GET" });
+  const response = await httpClient.request(request);
+  return response.json();
+};
 
-  private ordersApiUrl = apiOrdersResource;
+export const getOrder = async (httpClient: ApiHttpClient, id: string): Promise<ApiOrderDto> => {
+  const request = new Request(`${apiOrdersResource}/${id}`, { method: "GET" });
+  const response = await httpClient.request(request);
+  return response.json();
+};
 
-  constructor(private readonly httpClient: ApiHttpClient) {}
+export const updateOrder = async (
+  httpClient: ApiHttpClient,
+  id: string,
+  order: ApiOrderDto,
+): Promise<void> => {
+  const request = new Request(`${apiOrdersResource}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(order),
+  });
+  await httpClient.request(request);
+};
 
-  async getOrders(): Promise<ApiOrderDto[]> {
-    const request = new Request(this.ordersApiUrl, { method: "GET" });
-    const response = await this.httpClient.request(request);
-    return response.json();
-  }
+export const deleteOrder = async (httpClient: ApiHttpClient, id: string): Promise<void> => {
+  const request = new Request(`${apiOrdersResource}/${id}`, { method: "DELETE" });
+  await httpClient.request(request);
+};
 
-  async getOrder(id: string): Promise<ApiOrderDto> {
-    const request = new Request(`${this.ordersApiUrl}/${id}`, { method: "GET" });
-    const response = await this.httpClient.request(request);
-    return response.json();
-  }
+export const makeApiOrders = (httpClient: ApiHttpClient = makeHttpClient()) => ({
+  getOrders: () => getOrders(httpClient),
+  getOrder: (id: string) => getOrder(httpClient, id),
+  updateOrder: (id: string, order: ApiOrderDto) => updateOrder(httpClient, id, order),
+  deleteOrder: (id: string) => deleteOrder(httpClient, id),
+});
 
-  async updateOrder(id: string, order: ApiOrderDto): Promise<void> {
-    const request = new Request(`${this.ordersApiUrl}/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(order),
-    });
-    await this.httpClient.request(request);
-  }
-
-  async deleteOrder(id: string): Promise<void> {
-    const request = new Request(`${this.ordersApiUrl}/${id}`, { method: "DELETE" });
-    await this.httpClient.request(request);
-  }
-}
+export type ApiOrders = ReturnType<typeof makeApiOrders>;

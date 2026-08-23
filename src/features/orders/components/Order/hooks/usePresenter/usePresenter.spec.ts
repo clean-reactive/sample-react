@@ -1,3 +1,7 @@
+import {
+  makeOrdersServiceMock,
+  type MockedOrdersService,
+} from "../../../../repositories/ordersRepository/utils/testing";
 import { renderHook } from "@testing-library/react";
 import type { FC, PropsWithChildren } from "react";
 import { describe, beforeEach, vi, afterEach, it, expect } from "vitest";
@@ -7,10 +11,8 @@ import { makeComponentFixture } from "../../../../utils/testing/makeComponentFix
 import { usePresenter } from "./usePresenter";
 import { Deferred } from "@esfx/async-deferred";
 import { useDeleteOrderMutation, makeDeleteOrderFixedCacheKey } from "../../../../repositories";
-import {
-  makeOrdersServiceMock,
-  type MockedOrdersService,
-} from "../../../../repositories/ordersRepository/utils/testing";
+
+vi.mock(import("../../../../repositories/ordersRepository/OrdersService"));
 
 interface LocalTestContext {
   Fixture: FC<PropsWithChildren<unknown>>;

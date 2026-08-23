@@ -45,7 +45,7 @@ maps to this codebase.
 | Enterprise business entity      | TypeScript type                    | `repositories/ordersRepository.types.ts`                                                |
 | Gateway interface               | TypeScript interface               | `OrdersGateway` in `ordersRepository.types.ts`                                          |
 | Repository (gateway + entities) | RTK Query API (`createApi`)        | `repositories/ordersRepository/ordersRepository.ts`                                     |
-| Gateway implementation          | Class implementing `OrdersGateway` | `OrdersService/InMemoryOrdersService`, `OrdersService/RemoteOrdersService`              |
+| Gateway implementation          | Factory returning `OrdersGateway`  | `OrdersService/InMemoryOrdersService`, `OrdersService/RemoteOrdersService`              |
 | Use case interactor             | React hook                         | `hooks/useDeleteOrderUseCase`                                                           |
 | Selector                        | React hook                         | `hooks/useOrderIdsSelector`, `useOrderByIdSelector`, `useTotalItemsQuantitySelector`, … |
 | Presenter                       | React hook returning a view model  | `components/Orders/hooks/usePresenter`, `components/Order/hooks/usePresenter`           |
@@ -68,10 +68,10 @@ of the gateway interface and the enterprise business entity. It exposes
 `OrdersGateway` behaviour through its endpoints and owns the entity cache that
 presenters and selectors read from.
 
-**Gateway implementations resolved at runtime.** `OrdersService.make(resource)`
-returns either `InMemoryOrdersService` or `RemoteOrdersService` depending on
-the `ordersResource` value stored in the application business entity. The
-repository calls this factory inside each `queryFn`, so the gateway
+**Gateway implementations resolved at runtime.** `makeOrdersService(resource)`
+returns either `makeInMemoryOrdersService()` or `makeRemoteOrdersService()`
+depending on the `ordersResource` value stored in the application business
+entity. The repository calls this factory inside each `queryFn`, so the gateway
 implementation can change without any structural change to the architecture.
 
 **Hooks as architectural units.** React hooks are the natural host for use

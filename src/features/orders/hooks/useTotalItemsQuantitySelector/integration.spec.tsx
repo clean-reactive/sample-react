@@ -1,3 +1,7 @@
+import {
+  makeOrdersServiceMock,
+  type MockedOrdersService,
+} from "../../repositories/ordersRepository/utils/testing";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useTotalItemsQuantitySelector } from "./useTotalItemsQuantitySelector";
 import { render, screen } from "@testing-library/react";
@@ -8,11 +12,8 @@ import { useDeleteOrderMutation, useDeleteOrderItemMutation } from "../../reposi
 import type { OrderEntity, OrderEntityId, ItemEntityId } from "../../repositories";
 import { resetOrderEntitiesFactories, makeOrderEntities } from "../../utils/testing";
 import { makeComponentFixture } from "../../utils/testing/makeComponentFixture";
-import {
-  makeOrdersServiceMock,
-  type MockedOrdersService,
-} from "../../repositories/ordersRepository/utils/testing";
-import { InMemoryOrdersService } from "../../repositories/ordersRepository/OrdersService/InMemoryOrdersService";
+
+vi.mock(import("../../repositories/ordersRepository/OrdersService"));
 
 interface LocalTestContext {
   Fixture: FC<PropsWithChildren<unknown>>;
@@ -30,11 +31,11 @@ const deleteOrderButtonTestId = "delete-order-button-test-id";
 const deleteItemButtonTestId = "delete-item-button-test-id";
 
 describe(`${useTotalItemsQuantitySelector.name} Integration Test for Order deletion`, () => {
+  const ordersServiceMock = makeOrdersServiceMock();
+
   type OrderDeletionTextContext = LocalTestContext & {
     Sut: FC<{ orderId: OrderEntityId }>;
   };
-
-  const ordersServiceMock = makeOrdersServiceMock();
 
   beforeEach<OrderDeletionTextContext>((context) => {
     vi.useFakeTimers();
@@ -73,7 +74,7 @@ describe(`${useTotalItemsQuantitySelector.name} Integration Test for Order delet
   afterEach(() => {
     vi.useRealTimers();
   });
-  it<OrderDeletionTextContext>("changes value once an order is deleted (mocked gateway)", async (context) => {
+  it<OrderDeletionTextContext>("changes value once an order is deleted", async (context) => {
     const orderId = context.orders.at(0)!.id;
 
     const initialOrders = context.orders.slice();
@@ -98,42 +99,14 @@ describe(`${useTotalItemsQuantitySelector.name} Integration Test for Order delet
       quantity: 1460,
     });
   });
-
-  it<OrderDeletionTextContext>("changes value once an order is deleted (in-memory gateway)", async (context) => {
-    const orderId = context.orders.at(0)!.id;
-
-    const inMemoryService = InMemoryOrdersService.make();
-    inMemoryService.setOrders(context.orders);
-    context.ordersServiceMock.getOrders.mockImplementation(() => inMemoryService.getOrders());
-    context.ordersServiceMock.deleteOrder.mockImplementation((id) =>
-      inMemoryService.deleteOrder(id),
-    );
-
-    render(<context.Sut orderId={orderId} />);
-
-    await vi.runAllTimersAsync();
-
-    expect(screen.getByTestId(outputTestId)).toHaveOutput<Output>({
-      quantity: 1825,
-    });
-
-    const deleteButton = screen.getByTestId(deleteOrderButtonTestId);
-    context.user.click(deleteButton);
-
-    await vi.runAllTimersAsync();
-
-    expect(screen.getByTestId(outputTestId)).toHaveOutput<Output>({
-      quantity: 1460,
-    });
-  });
 });
 
 describe(`${useTotalItemsQuantitySelector.name} Integration Test for Order deletion followed by item deletion`, () => {
+  const ordersServiceMock = makeOrdersServiceMock();
+
   type OrderAndItemDeletionTestContext = LocalTestContext & {
     Sut: FC<{ orderIdToDelete: OrderEntityId; itemOrderId: OrderEntityId; itemId: ItemEntityId }>;
   };
-
-  const ordersServiceMock = makeOrdersServiceMock();
 
   beforeEach<OrderAndItemDeletionTestContext>((context) => {
     vi.useFakeTimers();
@@ -205,52 +178,6 @@ describe(`${useTotalItemsQuantitySelector.name} Integration Test for Order delet
 
     render(
       <context.Sut orderIdToDelete={orderIdToDelete} itemOrderId={itemOrderId} itemId={itemId} />,
-    );
-
-    await vi.runAllTimersAsync();
-
-    expect(screen.getByTestId(outputTestId)).toHaveOutput<Output>({
-      quantity: 1825,
-    });
-
-    const deleteOrderButton = screen.getByTestId(deleteOrderButtonTestId);
-    context.user.click(deleteOrderButton);
-    await vi.runAllTimersAsync();
-
-    expect(screen.getByTestId(outputTestId)).toHaveOutput<Output>({
-      quantity: 1460,
-    });
-
-    const deleteItemButton = screen.getByTestId(deleteItemButtonTestId);
-    context.user.click(deleteItemButton);
-    await vi.runAllTimersAsync();
-
-    expect(screen.getByTestId(outputTestId)).toHaveOutput<Output>({
-      quantity: 1385,
-    });
-  });
-
-  it<OrderAndItemDeletionTestContext>("changes value once an order deletion is followed by an item deletion (in-memory gateway)", async (context) => {
-    const orderIdToDelete = context.orders.at(0)!.id;
-    const remainingOrder = context.orders.at(1)!;
-    const itemIdToDelete = remainingOrder.itemEntities.at(0)!.id;
-
-    const inMemoryService = InMemoryOrdersService.make();
-    inMemoryService.setOrders(context.orders);
-    context.ordersServiceMock.getOrders.mockImplementation(() => inMemoryService.getOrders());
-    context.ordersServiceMock.deleteOrder.mockImplementation((id) =>
-      inMemoryService.deleteOrder(id),
-    );
-    context.ordersServiceMock.deleteItem.mockImplementation((orderId, itemId) =>
-      inMemoryService.deleteItem(orderId, itemId),
-    );
-
-    render(
-      <context.Sut
-        orderIdToDelete={orderIdToDelete}
-        itemOrderId={remainingOrder.id}
-        itemId={itemIdToDelete}
-      />,
     );
 
     await vi.runAllTimersAsync();

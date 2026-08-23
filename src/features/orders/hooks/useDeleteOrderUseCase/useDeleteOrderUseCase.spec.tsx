@@ -1,3 +1,7 @@
+import {
+  makeOrdersServiceMock,
+  type MockedOrdersService,
+} from "../../repositories/ordersRepository/utils/testing";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useDeleteOrderUseCase } from "./useDeleteOrderUseCase";
 import type { UserEvent } from "@testing-library/user-event";
@@ -9,10 +13,8 @@ import { useOrderIdsSelector } from "../useOrderIdsSelector";
 import { output } from "../../../../utils/testing";
 import { render, screen } from "@testing-library/react";
 import { makeOrderEntityId } from "../../repositories";
-import {
-  makeOrdersServiceMock,
-  type MockedOrdersService,
-} from "../../repositories/ordersRepository/utils/testing";
+
+vi.mock(import("../../repositories/ordersRepository/OrdersService"));
 
 interface LocalTestContext {
   Fixture: FC<PropsWithChildren<unknown>>;

@@ -1,14 +1,16 @@
+import {
+  makeOrdersServiceMock,
+  type MockedOrdersService,
+} from "../../../../repositories/ordersRepository/utils/testing";
 import { useController } from "./useController";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import type { PropsWithChildren, FC } from "react";
 import { makeComponentFixture } from "../../../../utils/testing/makeComponentFixture";
 import type { OrderEntity } from "../../../../repositories";
-import {
-  makeOrdersServiceMock,
-  type MockedOrdersService,
-} from "../../../../repositories/ordersRepository/utils/testing";
 import { makeOrderEntities, resetOrderEntitiesFactories } from "../../../../utils/testing";
+
+vi.mock(import("../../../../repositories/ordersRepository/OrdersService"));
 
 interface LocalTestContext {
   Fixture: FC<PropsWithChildren<unknown>>;

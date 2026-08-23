@@ -1,10 +1,7 @@
 import type { OrdersResource } from "../../../stores";
 import type { OrdersGateway } from "../ordersRepository.types";
-import { InMemoryOrdersService } from "./InMemoryOrdersService";
-import { RemoteOrdersService } from "./RemoteOrdersService";
+import { makeInMemoryOrdersService } from "./InMemoryOrdersService";
+import { makeRemoteOrdersService } from "./RemoteOrdersService";
 
-export class OrdersService {
-  static make(resource: OrdersResource): OrdersGateway {
-    return resource === "local" ? InMemoryOrdersService.make() : RemoteOrdersService.make();
-  }
-}
+export const makeOrdersService = (resource: OrdersResource): OrdersGateway =>
+  resource === "local" ? makeInMemoryOrdersService() : makeRemoteOrdersService();

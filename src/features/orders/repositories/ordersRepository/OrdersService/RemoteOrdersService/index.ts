@@ -1,1 +1,1 @@
-export { RemoteOrdersService } from "./RemoteOrdersService";
+export { makeRemoteOrdersService } from "./RemoteOrdersService";

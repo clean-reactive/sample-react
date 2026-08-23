@@ -1,6 +1,6 @@
-import { vi, beforeEach, afterEach, type Mocked, type MockInstance } from "vitest";
+import { vi, beforeEach, type Mocked } from "vitest";
 import type { OrdersGateway } from "../../ordersRepository.types";
-import { OrdersService } from "../../OrdersService";
+import { makeOrdersService } from "../../OrdersService";
 
 export type MockedOrdersService = Mocked<OrdersGateway>;
 
@@ -14,15 +14,10 @@ function makeMockInstance(): MockedOrdersService {
 
 export function makeOrdersServiceMock() {
   let mockInstance: MockedOrdersService;
-  let makeSpy: MockInstance<() => OrdersGateway>;
 
   beforeEach(() => {
     mockInstance = makeMockInstance();
-    makeSpy = vi.spyOn(OrdersService, "make").mockReturnValue(mockInstance);
-  });
-
-  afterEach(() => {
-    makeSpy.mockRestore();
+    vi.mocked(makeOrdersService).mockReturnValue(mockInstance);
   });
 
   return {

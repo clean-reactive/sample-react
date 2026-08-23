@@ -1,3 +1,7 @@
+import {
+  makeOrdersServiceMock,
+  type MockedOrdersService,
+} from "../repositories/ordersRepository/utils/testing";
 import type { FC, PropsWithChildren } from "react";
 import { describe, beforeEach, vi, afterEach, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -12,12 +16,12 @@ import {
   deleteOrderButtonTestId,
 } from "../testIds";
 import { Orders } from "./Orders";
-import {
-  makeOrdersServiceMock,
-  type MockedOrdersService,
-} from "../repositories/ordersRepository/utils/testing";
+
+vi.mock(import("../repositories/ordersRepository/OrdersService"));
 
 describe(`${Orders.displayName} Integration Test`, () => {
+  const ordersServiceMock = makeOrdersServiceMock();
+
   interface IntegrationTestContext {
     Fixture: FC<PropsWithChildren<unknown>>;
     Sut: FC<{ resource?: OrdersResource }>;
@@ -25,8 +29,6 @@ describe(`${Orders.displayName} Integration Test`, () => {
     orderEntities: OrderEntity[];
     ordersServiceMock: MockedOrdersService;
   }
-
-  const ordersServiceMock = makeOrdersServiceMock();
 
   beforeEach<IntegrationTestContext>((context) => {
     vi.useFakeTimers();

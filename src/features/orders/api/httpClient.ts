@@ -1,10 +1,5 @@
 import type { ApiHttpClient } from "./types";
 
-export class HttpClient implements ApiHttpClient {
-  static make(): ApiHttpClient {
-    return new HttpClient();
-  }
-  request(request: Request): Promise<Response> {
-    return fetch(request);
-  }
-}
+export const fetchRequest: ApiHttpClient["request"] = (request) => fetch(request);
+
+export const makeHttpClient = (): ApiHttpClient => ({ request: fetchRequest });

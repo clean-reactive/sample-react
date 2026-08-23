@@ -1,1 +1,1 @@
-export { InMemoryOrdersService } from "./InMemoryOrdersService";
+export { makeInMemoryOrdersService } from "./InMemoryOrdersService";

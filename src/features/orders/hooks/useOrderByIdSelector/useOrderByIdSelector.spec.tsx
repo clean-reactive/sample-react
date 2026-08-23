@@ -1,3 +1,7 @@
+import {
+  makeOrdersServiceMock,
+  type MockedOrdersService,
+} from "../../repositories/ordersRepository/utils/testing";
 import type { FC, PropsWithChildren } from "react";
 import { describe, beforeEach, vi, afterEach, it, expect, assert } from "vitest";
 import { Deferred } from "@esfx/async-deferred";
@@ -8,10 +12,8 @@ import { makeOrderEntities, resetOrderEntitiesFactories } from "../../utils/test
 import { makeComponentFixture } from "../../utils/testing/makeComponentFixture";
 import { useOrderByIdSelector } from "./useOrderByIdSelector";
 import { render, screen } from "@testing-library/react";
-import {
-  makeOrdersServiceMock,
-  type MockedOrdersService,
-} from "../../repositories/ordersRepository/utils/testing";
+
+vi.mock(import("../../repositories/ordersRepository/OrdersService"));
 
 interface LocalTestContext {
   Fixture: FC<PropsWithChildren<unknown>>;

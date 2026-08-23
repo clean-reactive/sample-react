@@ -1,18 +1,18 @@
 import { describe, it, beforeEach, beforeAll, afterAll, expect, vi } from "vitest";
-import { RemoteOrdersService } from "./RemoteOrdersService";
+import { makeRemoteOrdersService, getOrders, deleteOrder, deleteItem } from "./RemoteOrdersService";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { makeItemEntityId, makeOrderEntityId } from "../../../../repositories";
-import type { OrderEntity } from "../../ordersRepository.types";
-import { apiOrderDtoFactory, ApiOrders, apiOrdersResource } from "../../../../api/OrdersApi";
+import type { OrderEntity, OrdersGateway } from "../../ordersRepository.types";
+import { apiOrderDtoFactory, makeApiOrders, apiOrdersResource } from "../../../../api/OrdersApi";
 
 const server = setupServer();
 
 interface LocalTestContext {
-  gateway: RemoteOrdersService;
+  gateway: OrdersGateway;
 }
 
-describe(`${RemoteOrdersService.name}`, () => {
+describe(`${makeRemoteOrdersService.name}`, () => {
   beforeAll(() => {
     server.listen({
       onUnhandledRequest: "error",
@@ -20,12 +20,12 @@ describe(`${RemoteOrdersService.name}`, () => {
   });
   beforeEach<LocalTestContext>((context) => {
     apiOrderDtoFactory.resetCount();
-    context.gateway = RemoteOrdersService.make();
+    context.gateway = makeRemoteOrdersService();
   });
   afterAll(() => {
     server.close();
   });
-  describe(`${RemoteOrdersService.prototype.getOrders.name}`, () => {
+  describe(`${getOrders.name}`, () => {
     it<LocalTestContext>("fetches order entities", async (context) => {
       const ordersDto = apiOrderDtoFactory.list({ count: 1 });
 
@@ -51,7 +51,7 @@ describe(`${RemoteOrdersService.name}`, () => {
     });
   });
 
-  describe(`${RemoteOrdersService.prototype.deleteOrder.name}`, () => {
+  describe(`${deleteOrder.name}`, () => {
     it<LocalTestContext>("deletes order", async (context) => {
       const orderId = makeOrderEntityId("1");
 
@@ -65,10 +65,10 @@ describe(`${RemoteOrdersService.name}`, () => {
     });
   });
 
-  describe(`${RemoteOrdersService.prototype.deleteItem.name}`, () => {
+  describe(`${deleteItem.name}`, () => {
     it<LocalTestContext>("deletes item from order", async () => {
-      const api = ApiOrders.make();
-      const gateway = new RemoteOrdersService(api);
+      const api = makeApiOrders();
+      const gateway = makeRemoteOrdersService(api);
 
       vi.spyOn(api, "updateOrder");
 
@@ -97,8 +97,8 @@ describe(`${RemoteOrdersService.name}`, () => {
     });
 
     it<LocalTestContext>("does nothing when item is not found in order", async () => {
-      const api = ApiOrders.make();
-      const gateway = new RemoteOrdersService(api);
+      const api = makeApiOrders();
+      const gateway = makeRemoteOrdersService(api);
 
       vi.spyOn(api, "updateOrder");
 

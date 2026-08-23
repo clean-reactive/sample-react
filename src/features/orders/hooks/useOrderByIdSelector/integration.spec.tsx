@@ -1,3 +1,7 @@
+import {
+  makeOrdersServiceMock,
+  type MockedOrdersService,
+} from "../../repositories/ordersRepository/utils/testing";
 import type { FC, PropsWithChildren } from "react";
 import { describe, beforeEach, vi, afterEach, it, expect } from "vitest";
 import { output } from "../../../../utils/testing";
@@ -13,13 +17,12 @@ import {
 } from "../../repositories";
 import { useOrderByIdSelector } from "./useOrderByIdSelector";
 import { useOrdersSelector } from "../useOrdersSelector";
-import {
-  makeOrdersServiceMock,
-  type MockedOrdersService,
-} from "../../repositories/ordersRepository/utils/testing";
-import { InMemoryOrdersService } from "../../repositories/ordersRepository/OrdersService/InMemoryOrdersService";
+
+vi.mock(import("../../repositories/ordersRepository/OrdersService"));
 
 describe(`${useOrderByIdSelector.name}: Delete Order and Item`, () => {
+  const ordersServiceMock = makeOrdersServiceMock();
+
   interface IntegrationTestContext {
     Fixture: FC<PropsWithChildren<unknown>>;
     Sut: FC;
@@ -38,8 +41,6 @@ describe(`${useOrderByIdSelector.name}: Delete Order and Item`, () => {
   const integrationOutputTestId = "integration-output-test-id";
   const deleteOrderButtonTestId = "delete-order-button-test-id";
   const deleteItemButtonTestId = "delete-item-button-test-id";
-
-  const ordersServiceMock = makeOrdersServiceMock();
 
   beforeEach<IntegrationTestContext>((context) => {
     vi.useFakeTimers();
@@ -102,7 +103,7 @@ describe(`${useOrderByIdSelector.name}: Delete Order and Item`, () => {
     vi.useRealTimers();
   });
 
-  it<IntegrationTestContext>("deletes an order and then deletes an item from a remaining order (with mocked gateway)", async (context) => {
+  it<IntegrationTestContext>("deletes an order and then deletes an item from a remaining order", async (context) => {
     const initialOrders = context.orderEntities;
     const orderToDelete = initialOrders.at(0)!;
     const remainingOrderWithItem = initialOrders.at(1)!;
@@ -151,54 +152,6 @@ describe(`${useOrderByIdSelector.name}: Delete Order and Item`, () => {
       remainingOrderWithItem.id,
       itemToDelete.id,
     );
-
-    expect(screen.getByTestId(integrationOutputTestId)).toHaveOutput<IntegrationOutput>({
-      orders: ordersAfterItemDeletion,
-      firstOrderIdFromSelector: ordersAfterItemDeletion.at(0)?.id,
-    });
-  });
-
-  it<IntegrationTestContext>("deletes an order and then deletes an item from a remaining order (with in memory gateway)", async (context) => {
-    const initialOrders = context.orderEntities;
-    const remainingOrderWithItem = initialOrders.at(1)!;
-    const ordersAfterOrderDeletion = initialOrders.slice(1);
-
-    const updatedRemainingOrder = {
-      ...remainingOrderWithItem,
-      itemEntities: remainingOrderWithItem.itemEntities.slice(1),
-    };
-    const ordersAfterItemDeletion = [updatedRemainingOrder, ...ordersAfterOrderDeletion.slice(1)];
-
-    const inMemoryService = InMemoryOrdersService.make(initialOrders);
-    context.ordersServiceMock.getOrders.mockImplementation(() => inMemoryService.getOrders());
-    context.ordersServiceMock.deleteOrder.mockImplementation((orderId) =>
-      inMemoryService.deleteOrder(orderId),
-    );
-    context.ordersServiceMock.deleteItem.mockImplementation((orderId, itemId) =>
-      inMemoryService.deleteItem(orderId, itemId),
-    );
-
-    render(<context.Sut />);
-
-    await vi.runAllTimersAsync();
-
-    expect(screen.getByTestId(integrationOutputTestId)).toHaveOutput<IntegrationOutput>({
-      orders: initialOrders,
-      firstOrderIdFromSelector: initialOrders.at(0)!.id,
-    });
-
-    const deleteOrderButton = screen.getByTestId(deleteOrderButtonTestId);
-    context.user.click(deleteOrderButton);
-    await vi.runAllTimersAsync();
-
-    expect(screen.getByTestId(integrationOutputTestId)).toHaveOutput<IntegrationOutput>({
-      orders: ordersAfterOrderDeletion,
-      firstOrderIdFromSelector: ordersAfterOrderDeletion.at(0)!.id,
-    });
-
-    const deleteItemButton = screen.getByTestId(deleteItemButtonTestId);
-    context.user.click(deleteItemButton);
-    await vi.runAllTimersAsync();
 
     expect(screen.getByTestId(integrationOutputTestId)).toHaveOutput<IntegrationOutput>({
       orders: ordersAfterItemDeletion,

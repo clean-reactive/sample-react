@@ -2,53 +2,60 @@ import { sleep } from "../../../../../../utils";
 import type { OrderEntity, OrderEntityId, OrdersGateway } from "../../ordersRepository.types";
 import { makeOrderEntitiesMock } from "./makeOrderEntitiesMock";
 
-export class InMemoryOrdersService implements OrdersGateway {
-  static instance: InMemoryOrdersService | null = null;
-  static make(orders: OrderEntity[] = makeOrderEntitiesMock()): InMemoryOrdersService {
-    if (InMemoryOrdersService.instance === null) {
-      InMemoryOrdersService.instance = new InMemoryOrdersService(orders);
-    }
+export type OrdersMap = Map<OrderEntityId, OrderEntity>;
 
-    return InMemoryOrdersService.instance;
+export const setOrders = (orders: OrdersMap, orderEntities: OrderEntity[]): void => {
+  orderEntities.forEach((order) => orders.set(order.id, order));
+};
+
+export const getOrders = async (orders: OrdersMap): Promise<OrderEntity[]> => {
+  await sleep(1000);
+
+  return Array.from(orders.values());
+};
+
+export const deleteOrder = async (orders: OrdersMap, orderId: OrderEntityId): Promise<void> => {
+  await sleep(3000);
+
+  if (!orders.has(orderId)) {
+    throw new Error(`Order with id ${orderId} not found`);
+  }
+  orders.delete(orderId);
+};
+
+export const deleteItem = async (
+  orders: OrdersMap,
+  orderId: OrderEntityId,
+  itemId: string,
+): Promise<void> => {
+  await sleep(2000);
+
+  const order = orders.get(orderId);
+
+  if (!order) {
+    throw new Error(`Order with id ${orderId} not found`);
   }
 
-  private orders = new Map<OrderEntityId, OrderEntity>();
+  orders.set(orderId, {
+    ...order,
+    itemEntities: order.itemEntities.filter((item) => item.id !== itemId),
+  });
+};
 
-  constructor(orders: OrderEntity[]) {
-    this.setOrders(orders);
-  }
+export const makeService = (initialOrders: OrderEntity[]): OrdersGateway => {
+  const orders: OrdersMap = new Map(initialOrders.map((order) => [order.id, order]));
 
-  setOrders(orders: OrderEntity[]): void {
-    orders.forEach((order) => this.orders.set(order.id, order));
-  }
+  return {
+    getOrders: () => getOrders(orders),
+    deleteOrder: (orderId) => deleteOrder(orders, orderId),
+    deleteItem: (orderId, itemId) => deleteItem(orders, orderId, itemId),
+  };
+};
 
-  async getOrders(): Promise<OrderEntity[]> {
-    await sleep(1000);
+let instance: OrdersGateway | null = null;
 
-    return Array.from(this.orders.values());
-  }
+export const makeInMemoryOrdersService = (initialOrders?: OrderEntity[]): OrdersGateway => {
+  instance ??= makeService(initialOrders ?? makeOrderEntitiesMock());
 
-  async deleteOrder(orderId: OrderEntityId): Promise<void> {
-    await sleep(3000);
-
-    if (!this.orders.has(orderId)) {
-      throw new Error(`Order with id ${orderId} not found`);
-    }
-    this.orders.delete(orderId);
-  }
-
-  async deleteItem(orderId: OrderEntityId, itemId: string): Promise<void> {
-    await sleep(2000);
-
-    const order = this.orders.get(orderId);
-
-    if (!order) {
-      throw new Error(`Order with id ${orderId} not found`);
-    }
-
-    this.orders.set(orderId, {
-      ...order,
-      itemEntities: order.itemEntities.filter((item) => item.id !== itemId),
-    });
-  }
-}
+  return instance;
+};

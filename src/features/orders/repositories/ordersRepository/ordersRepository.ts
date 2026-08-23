@@ -5,7 +5,7 @@ import type {
   OrderEntity,
   StateWithOrderPresentationEntity,
 } from "./ordersRepository.types";
-import { OrdersService } from "./OrdersService";
+import { makeOrdersService } from "./OrdersService";
 import { ordersTag, getOrdersEndpointName } from "./ordersRepository.utils";
 
 export const ordersRepository = createApi({
@@ -17,7 +17,7 @@ export const ordersRepository = createApi({
       queryFn: async (_, { getState }) => {
         try {
           const { ordersPresentation } = getState() as StateWithOrderPresentationEntity;
-          const gateway = OrdersService.make(ordersPresentation.ordersResource);
+          const gateway = makeOrdersService(ordersPresentation.ordersResource);
           const data = await gateway.getOrders();
           // Deep-clone so Immer freezes the copy, not the gateway's internal
           // objects
@@ -37,7 +37,7 @@ export const ordersRepository = createApi({
       queryFn: async ({ orderId }, { getState }) => {
         try {
           const { ordersPresentation } = getState() as StateWithOrderPresentationEntity;
-          const gateway = OrdersService.make(ordersPresentation.ordersResource);
+          const gateway = makeOrdersService(ordersPresentation.ordersResource);
           await gateway.deleteOrder(orderId);
           return { data: undefined };
         } catch (error) {
@@ -63,7 +63,7 @@ export const ordersRepository = createApi({
       queryFn: async ({ orderId, itemId }, { getState }) => {
         try {
           const { ordersPresentation } = getState() as StateWithOrderPresentationEntity;
-          const gateway = OrdersService.make(ordersPresentation.ordersResource);
+          const gateway = makeOrdersService(ordersPresentation.ordersResource);
           await gateway.deleteItem(orderId, itemId);
           return { data: undefined };
         } catch (error) {
