@@ -9,7 +9,7 @@ import { makeOrdersService } from "./OrdersService";
 import { ordersTag, getOrdersEndpointName } from "./ordersRepository.utils";
 
 export const ordersRepository = createApi({
-  reducerPath: "ordersApi",
+  reducerPath: "ordersRepository",
   baseQuery: fakeBaseQuery(),
   tagTypes: [ordersTag],
   endpoints: (builder) => ({

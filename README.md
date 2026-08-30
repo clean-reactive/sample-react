@@ -39,18 +39,18 @@ npm run dev
 The table below shows how each unit from the Clean Reactive Architecture diagram
 maps to this codebase.
 
-| Architectural unit              | React / RTK equivalent             | Location                                                                                |
-| ------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------- |
-| Application business entity     | Redux slice (`createSlice`)        | `stores/ordersPresentationSlice.ts`                                                     |
-| Enterprise business entity      | TypeScript type                    | `repositories/ordersRepository.types.ts`                                                |
-| Gateway interface               | TypeScript interface               | `OrdersGateway` in `ordersRepository.types.ts`                                          |
-| Repository (gateway + entities) | RTK Query API (`createApi`)        | `repositories/ordersRepository/ordersRepository.ts`                                     |
-| Gateway implementation          | Factory returning `OrdersGateway`  | `OrdersService/InMemoryOrdersService`, `OrdersService/RemoteOrdersService`              |
-| Use case interactor             | React hook                         | `hooks/useDeleteOrderUseCase`                                                           |
-| Selector                        | React hook                         | `hooks/useOrderIdsSelector`, `useOrderByIdSelector`, `useTotalItemsQuantitySelector`, … |
-| Presenter                       | React hook returning a view model  | `components/Orders/hooks/usePresenter`, `components/Order/hooks/usePresenter`           |
-| Controller                      | React hook returning callbacks     | `components/Orders/hooks/useController`, `components/OrderItem/hooks/useController`     |
-| User interface                  | React component                    | `components/Orders`, `components/Order`, `components/OrderItem`                         |
+| Architectural unit              | React / RTK equivalent            | Location                                                                                |
+| ------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------- |
+| Application business entity     | Redux slice (`createSlice`)       | `stores/ordersPresentationSlice.ts`                                                     |
+| Enterprise business entity      | TypeScript type                   | `repositories/ordersRepository.types.ts`                                                |
+| Gateway interface               | TypeScript interface              | `OrdersGateway` in `ordersRepository.types.ts`                                          |
+| Repository (gateway + entities) | RTK Query API (`createApi`)       | `repositories/ordersRepository/ordersRepository.ts`                                     |
+| Gateway implementation          | Factory returning `OrdersGateway` | `OrdersService/InMemoryOrdersService`, `OrdersService/RemoteOrdersService`              |
+| Use case interactor             | React hook                        | `hooks/useDeleteOrderUseCase`                                                           |
+| Selector                        | React hook                        | `hooks/useOrderIdsSelector`, `useOrderByIdSelector`, `useTotalItemsQuantitySelector`, … |
+| Presenter                       | React hook returning a view model | `components/Orders/hooks/usePresenter`, `components/Order/hooks/usePresenter`           |
+| Controller                      | React hook returning callbacks    | `components/Orders/hooks/useController`, `components/OrderItem/hooks/useController`     |
+| User interface                  | React component                   | `components/Orders`, `components/Order`, `components/OrderItem`                         |
 
 ## UML diagram representing application architecture
 
