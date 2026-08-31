@@ -1,4 +1,4 @@
-# Clean Reactive Architecture — React + RTK Query Sample
+# Clean Reactive Architecture — React Sample
 
 A sample application that demonstrates
 [Clean Reactive Architecture](https://github.com/clean-reactive/documentation/blob/main/docs/architecture.md)
