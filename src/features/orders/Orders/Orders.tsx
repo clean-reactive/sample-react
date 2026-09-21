@@ -12,7 +12,7 @@ import {
 } from "../repositories";
 
 export const Orders: FC = memo(() => {
-  const { data: orders = [], isLoading, isFetching } = useGetOrdersQuery();
+  const { data: orders = [], isLoading, isFetching, isError } = useGetOrdersQuery();
   const isMutating = useAppSelector((state) =>
     Object.entries(state[ordersRepository.reducerPath].mutations).some(
       ([key, mutation]) =>
@@ -30,9 +30,17 @@ export const Orders: FC = memo(() => {
     statusLabel = "fetching";
   } else if (isMutating) {
     statusLabel = "mutating";
+  } else if (isError) {
+    statusLabel = "failed";
   }
   const orderIds = orders.map((order) => order.id);
   const isProcessing = isLoading || isFetching || isMutating;
+  let statusBadgeType = "badge-success";
+  if (isProcessing) {
+    statusBadgeType = "badge-warning";
+  } else if (isError) {
+    statusBadgeType = "badge-error";
+  }
 
   // user interface
   return (
@@ -42,7 +50,7 @@ export const Orders: FC = memo(() => {
         <div className="text-xs text-base-content/40 uppercase tracking-widest mb-2">Resource</div>
         <div className="flex items-center justify-between">
           <OrdersResourcePicker />
-          <div className={`badge gap-1 ${isProcessing ? "badge-warning" : "badge-success"}`}>
+          <div className={`badge gap-1 ${statusBadgeType}`}>
             {isProcessing && <span className="loading loading-spinner loading-xs" />}
             {statusLabel}
           </div>

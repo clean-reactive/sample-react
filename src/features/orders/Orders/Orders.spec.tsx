@@ -65,4 +65,18 @@ describe(`${Orders.displayName}`, () => {
     expect(await screen.findByText("idle")).toBeInTheDocument();
     expect(screen.queryByTestId(/^order-/)).not.toBeInTheDocument();
   });
+
+  it("shows a failed error badge when loading orders fails", async () => {
+    gateway.mock.getOrders.mockRejectedValue(new Error("Orders are unavailable"));
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { Fixture } = makeComponentFixture();
+
+    render(<Orders />, { wrapper: Fixture });
+
+    const failedBadge = await screen.findByText("failed");
+    expect(failedBadge).toHaveClass("badge-error");
+    expect(failedBadge.querySelector(".loading-spinner")).not.toBeInTheDocument();
+
+    consoleError.mockRestore();
+  });
 });
