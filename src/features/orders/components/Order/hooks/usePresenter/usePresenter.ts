@@ -1,23 +1,23 @@
 import type { Presenter } from "../../Order.types";
-import type { ItemEntity, OrderEntityId } from "../../../../repositories";
-import { useOrdersSelector, useIsDeleteOrderMutatingSelector } from "../../../../hooks";
-
-const ITEMS_FALLBACK: ItemEntity[] = [];
+import type { OrderEntityId } from "../../../../repositories";
+import { useOrderByIdSelector, useIsDeleteOrderMutatingSelector } from "../../../../hooks";
 
 export const usePresenter = (params: { orderId: OrderEntityId }): Presenter => {
-  const orders = useOrdersSelector();
+  const order = useOrderByIdSelector(params.orderId);
   const isDeleteOrderInProgress = useIsDeleteOrderMutatingSelector(params.orderId);
-
-  const order = orders.find((o) => o.id === params.orderId);
-  const items = order?.itemEntities ?? ITEMS_FALLBACK;
 
   if (!order) {
     return {
       hasOrder: false,
+      orderId: "",
+      userId: "",
+      itemIds: [],
+      summaryLabel: "",
+      isDeleteOrderButtonDisabled: false,
     };
   }
 
-  const itemIds = items.map((itemEntity) => itemEntity.id);
+  const itemIds = order.itemEntities.map((itemEntity) => itemEntity.id);
 
   return {
     hasOrder: true,

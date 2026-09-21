@@ -6,7 +6,7 @@ import { useController, usePresenter } from "./hooks";
 
 export const Order: FC<OrderParams> = memo((props) => {
   const presenter = usePresenter(props);
-  const { deleteOrderButtonClicked } = useController(props);
+  const controller = useController(props);
 
   if (!presenter.hasOrder) {
     return null;
@@ -28,7 +28,7 @@ export const Order: FC<OrderParams> = memo((props) => {
             className="btn btn-sm btn-error btn-outline shrink-0"
             data-testid={deleteOrderButtonTestId}
             disabled={presenter.isDeleteOrderButtonDisabled}
-            onClick={deleteOrderButtonClicked}
+            onClick={controller.deleteOrderButtonClicked}
           >
             Delete Order
           </button>
