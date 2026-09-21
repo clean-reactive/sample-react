@@ -1,17 +1,40 @@
 import type { FC } from "react";
-import { memo, useEffect } from "react";
+import { memo } from "react";
+import { QueryStatus } from "@reduxjs/toolkit/query/react";
+import { useAppSelector } from "../../../hooks";
 import { ordersTestId } from "../testIds";
-import { useController, usePresenter } from "./hooks";
 import { Order, OrdersResourcePicker, OrdersStatistics } from "../components";
+import {
+  ordersRepository,
+  useGetOrdersQuery,
+  deleteOrderCacheKey,
+  deleteOrderItemCacheKey,
+} from "../repositories";
 
 export const Orders: FC = memo(() => {
-  const { isProcessing, statusLabel, orderIds } = usePresenter();
-  const { moduleDestroyed } = useController();
+  const { data: orders = [], isLoading, isFetching } = useGetOrdersQuery();
+  const isMutating = useAppSelector((state) =>
+    Object.entries(state[ordersRepository.reducerPath].mutations).some(
+      ([key, mutation]) =>
+        (key.startsWith(`${deleteOrderCacheKey}:`) ||
+          key.startsWith(`${deleteOrderItemCacheKey}:`)) &&
+        mutation?.status === QueryStatus.pending,
+    ),
+  );
 
-  useEffect(() => {
-    return () => moduleDestroyed();
-  }, [moduleDestroyed]);
+  // presenter
+  let statusLabel = "idle";
+  if (isLoading) {
+    statusLabel = "loading";
+  } else if (isFetching) {
+    statusLabel = "fetching";
+  } else if (isMutating) {
+    statusLabel = "mutating";
+  }
+  const orderIds = orders.map((order) => order.id);
+  const isProcessing = isLoading || isFetching || isMutating;
 
+  // user interface
   return (
     <div className="w-140 max-w-full text-left" data-testid={ordersTestId}>
       <h2 className="text-lg font-bold tracking-widest uppercase mb-5">Orders</h2>

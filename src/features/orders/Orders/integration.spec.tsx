@@ -3,6 +3,7 @@ import {
   type MockedOrdersService,
 } from "../repositories/ordersRepository/utils/testing";
 import type { FC, PropsWithChildren } from "react";
+import { Deferred } from "@esfx/async-deferred";
 import { describe, beforeEach, vi, afterEach, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import type { UserEvent } from "@testing-library/user-event";
@@ -85,6 +86,27 @@ describe(`${Orders.displayName} Integration Test`, () => {
     context.user.click(deleteButtons[0]);
     await vi.runAllTimersAsync();
 
+    expect(screen.getByTestId(totalItemQuantityTestId)).toHaveTextContent("1460");
+  });
+
+  it<IntegrationTestContext>("shows mutation status until an optimistic deletion finishes", async (context) => {
+    const deletion = new Deferred<void>();
+    context.ordersServiceMock.deleteOrder.mockReturnValue(deletion.promise);
+    render(<context.Sut />);
+    await vi.runAllTimersAsync();
+
+    const click = context.user.click(screen.getAllByTestId(deleteOrderButtonTestId)[0]);
+    await vi.runAllTimersAsync();
+    await click;
+
+    expect(screen.getByText("mutating")).toBeInTheDocument();
+    expect(screen.getByTestId(totalItemQuantityTestId)).toHaveTextContent("1460");
+
+    context.ordersServiceMock.getOrders.mockResolvedValue(context.orderEntities.slice(1));
+    deletion.resolve();
+    await vi.runAllTimersAsync();
+
+    expect(screen.getByText("idle")).toBeInTheDocument();
     expect(screen.getByTestId(totalItemQuantityTestId)).toHaveTextContent("1460");
   });
 
