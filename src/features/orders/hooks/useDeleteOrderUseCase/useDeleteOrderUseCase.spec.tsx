@@ -9,7 +9,7 @@ import type { FC, PropsWithChildren } from "react";
 import type { OrderEntity, OrderEntityId } from "../../repositories";
 import { makeOrderEntities, resetOrderEntitiesFactories } from "../../utils/testing";
 import { makeComponentFixture } from "../../utils/testing/makeComponentFixture";
-import { useOrderIdsSelector } from "../useOrderIdsSelector";
+import { useOrdersSelector } from "../useOrdersSelector";
 import { output } from "../../../../utils/testing";
 import { render, screen } from "@testing-library/react";
 import { makeOrderEntityId } from "../../repositories";
@@ -43,7 +43,7 @@ describe(`${useDeleteOrderUseCase.name}`, () => {
     const { Fixture, user } = makeComponentFixture();
     const Component: FC = () => {
       const { execute: executeDeleteOrder } = useDeleteOrderUseCase({ orderId });
-      const ids = useOrderIdsSelector();
+      const ids = useOrdersSelector().map((order) => order.id);
       return (
         <>
           <button data-testid={deleteOrderItemButtonTestId} onClick={() => executeDeleteOrder()}>
