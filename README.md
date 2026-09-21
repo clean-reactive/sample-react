@@ -76,7 +76,8 @@ architecture is visible. Simpler components inline units without independent
 policy or reuse.
 
 **Component functions as composition roots.** A component function composes the
-units used by its JSX and wires their dependencies through hooks.
+units including User Interface unit (implemented with JSX) and wires their
+dependencies through hooks.
 
 **Self-contained React components.** Components own their view-facing behavior
 and resolve their data within their composition boundary. Their props are
