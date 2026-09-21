@@ -2,12 +2,14 @@
 
 A sample application that demonstrates
 [Clean Reactive Architecture](https://github.com/clean-reactive/documentation/blob/main/docs/architecture.md)
-implemented with React and RTK Query.
+implemented with React.
 
 The sample shows a concrete, working mapping of every architectural unit from
-the diagram to idiomatic React + Redux Toolkit code. It covers entities, gateway
-interfaces, repositories, use cases, selectors, presenters, controllers, and the
-user interface — with unit and integration tests for each layer.
+the diagram to idiomatic React code.
+
+> :bulb: **Architecture reference implementation.** `components/Order` keeps its presenter, controller, and use case separate so the architecture is visible. Simpler components inline their units. This is a demonstration choice, not a rule that every component must follow. See the [Development Methodology](https://github.com/clean-reactive/documentation/blob/main/docs/methodology.md).
+
+> :bulb: **Multiple data resources.** The repository accesses either an in-memory resource or a remote API through the same gateway contract. This demonstrates substituting resource implementations without changing the consuming units. Multiple resources and runtime switching are included for demonstration purposes, not required by the architecture.
 
 ## Getting started
 
@@ -37,51 +39,106 @@ npm run dev
 ## Architecture mapping
 
 The table below shows how each unit from the Clean Reactive Architecture diagram
-maps to this codebase.
+maps to this codebase. Locations are relative to `src/features/orders`.
 
-| Architectural unit              | React / RTK equivalent            | Location                                                                                |
-| ------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------- |
-| Application business entity     | Redux slice (`createSlice`)       | `stores/ordersPresentationSlice.ts`                                                     |
-| Enterprise business entity      | TypeScript type                   | `repositories/ordersRepository.types.ts`                                                |
-| Gateway interface               | TypeScript interface              | `OrdersGateway` in `ordersRepository.types.ts`                                          |
-| Repository (gateway + entities) | RTK Query API (`createApi`)       | `repositories/ordersRepository/ordersRepository.ts`                                     |
-| Gateway implementation          | Factory returning `OrdersGateway` | `OrdersService/InMemoryOrdersService`, `OrdersService/RemoteOrdersService`              |
-| Use case interactor             | React hook                        | `hooks/useDeleteOrderUseCase`                                                           |
-| Selector                        | React hook                        | `hooks/useOrderIdsSelector`, `useOrderByIdSelector`, `useTotalItemsQuantitySelector`, … |
-| Presenter                       | React hook returning a view model | `components/Orders/hooks/usePresenter`, `components/Order/hooks/usePresenter`           |
-| Controller                      | React hook returning callbacks    | `components/Orders/hooks/useController`, `components/OrderItem/hooks/useController`     |
-| User interface                  | React component                   | `components/Orders`, `components/Order`, `components/OrderItem`                         |
-
-## UML diagram representing application architecture
-
-![clean-reactive-architecture-repository-with-gateway-interface](./clean-reactive-architecture-repository-with-gateway-interface.png)
+| Architectural unit              | React / RTK equivalent                 | Location                                                                                                |
+| ------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Application business entity     | Redux slice (`createSlice`)            | `stores/ordersPresentationSlice.ts`                                                                     |
+| Enterprise business entity      | TypeScript type                        | `repositories/ordersRepository/ordersRepository.types.ts`                                               |
+| Gateway interface               | TypeScript interface                   | `OrdersGateway` in `repositories/ordersRepository/ordersRepository.types.ts`                            |
+| Repository (gateway + entities) | RTK Query API (`createApi`)            | `repositories/ordersRepository/ordersRepository.ts`                                                     |
+| Gateway implementation          | Factory returning `OrdersGateway`      | `repositories/ordersRepository/OrdersService/`                                                          |
+| Use case interactor             | React hook or inline operation         | `hooks/useDeleteOrderUseCase`, `components/OrderItem/OrderItem.tsx`                                     |
+| Selector                        | React hook                             | `hooks/useOrdersSelector.ts`, `hooks/useOrderByIdSelector`, `hooks/useIsDeleteOrderMutatingSelector.ts` |
+| Presenter                       | React hook or inline projection        | `components/Order/hooks/usePresenter`, inline in simpler components                                     |
+| ViewModel                       | Plain values prepared by the presenter | `Presenter` in `components/Order/Order.types.ts`                                                        |
+| Controller                      | React hook or inline event handlers    | `components/Order/hooks/useController.ts`, inline in simpler components                                 |
+| User interface                  | React component                        | `Orders`, `components/Order`, `components/OrderItem`                                                    |
 
 ## Key design decisions
+
+These decisions are specific to this sample, guided by its demonstration goals
+and the capabilities of React and the selected libraries. The architecture
+defines responsibilities and boundaries without prescribing specific technical
+solutions.
+
+**Extracted units as React hooks.** Extracted units in this sample are
+implemented as React hooks composed by components. `Order` deliberately
+extracts its presenter, controller, use case, and selectors so the full
+architecture is visible. Simpler components inline units without independent
+policy or reuse.
+
+**Component functions as composition roots.** A component function composes the
+units used by its JSX and wires their dependencies through hooks.
+
+**Self-contained React components.** Components own their view-facing behavior
+and resolve their data within their composition boundary. Their props are
+limited to identity or configuration parameters, such as `orderId` and
+`itemId`, rather than receiving entity data through props. This is a deliberate
+demonstration choice to reduce structural coupling, not a mandatory rule.
 
 **Application business entity as a Redux slice.** `OrdersPresentationEntity`
 holds application-level state (`ordersResource: "local" | "remote"`) that
 persists across use case calls and has its own rules. It is managed by a
 dedicated Redux slice, not by RTK Query.
 
-**Repository as RTK Query `createApi`.** The `ordersRepository` is a composite
-of the gateway interface and the enterprise business entity. It exposes
-`OrdersGateway` behaviour through its endpoints and owns the entity cache that
-presenters and selectors read from.
+**Repository as RTK Query `createApi`.** `ordersRepository` combines gateway
+access and observable entity state. It consumes `OrdersGateway`, exposes query
+and mutation operations, and manages the entity cache and optimistic updates.
 
-**Gateway implementations resolved at runtime.** `makeOrdersService(resource)`
-returns either `makeInMemoryOrdersService()` or `makeRemoteOrdersService()`
-depending on the `ordersResource` value stored in the application business
-entity. The repository calls this factory inside each `queryFn`, so the gateway
-implementation can change without any structural change to the architecture.
+**Gateway selection at runtime.** `makeOrdersService(resource)` returns either
+`makeInMemoryOrdersService()` or `makeRemoteOrdersService()` according to
+`ordersResource`. The repository calls this factory inside each endpoint. The
+resource picker changes that state and resets the query cache to load the
+selected resource.
 
-**Hooks as architectural units.** React hooks are the natural host for use
-cases, selectors, presenters, and controllers in a React application. Each hook
-has a single, clearly scoped responsibility that matches exactly one
-architectural unit.
+**Hooks for reactive state.** RTK Query and React Redux hooks subscribe to data
+and operation state. `usePresenter` projects that state into plain values for
+JSX.
 
-**Dependency graph.** `dependency-cruiser` is configured to detect circular
-dependencies, orphan modules, and unresolvable imports. The `deps:graph` script
-generates a visual SVG of the module graph.
+## UML diagram representing application architecture
+
+![clean-reactive-architecture-repository-with-gateway-interface](./clean-reactive-architecture-repository-with-gateway-interface.png)
+
+<details>
+  <summary>mermaid</summary>
+
+```mermaid
+graph TD
+
+subgraph R1["Repository"]
+  E["Entities"]
+  G["Gateway"]
+  GI["Gateway < I >"]
+end
+
+ER["External Resource"]
+UI["User Interface"]
+P["Presenter"]
+C["Controller"]
+PI["Presenter < I >"]
+CI["Controller < I >"]
+UC["Use Case Interactor"]
+
+%% implementation relation
+P -. implements .-> PI
+C -. implements .-> CI
+G -. implements .-> GI
+
+%% dependency relation
+UI -- depends --> PI
+UI -- depends --> CI
+C -- depends --> UC
+P -- depends --> E
+UC -- depends --> E
+UC -- depends --> GI
+G -- depends --> ER
+
+classDef repository fill:none,stroke:#666,stroke-width:2px,stroke-dasharray: 5 5;
+class R1 repository;
+```
+
+</details>
 
 ## Folder structure
 
@@ -89,12 +146,6 @@ generates a visual SVG of the module graph.
 src/features
 └── orders
     ├── api                         # external resource (HTTP client + API)
-    │   ├── httpClient.ts
-    │   ├── OrdersApi
-    │   │   ├── OrdersApi.factory.ts
-    │   │   ├── OrdersApi.ts
-    │   │   └── OrdersApi.types.ts
-    │   └── types.ts
     ├── components                  # user interface, presenters, controllers
     │   ├── Order
     │   │   ├── hooks
@@ -104,49 +155,24 @@ src/features
     │   │   ├── Order.tsx
     │   │   └── Order.types.ts
     │   ├── OrderItem
-    │   │   ├── hooks
-    │   │   │   ├── useController
-    │   │   │   │   └── useController.ts
-    │   │   │   └── usePresenter.ts
-    │   │   ├── OrderItem.tsx
-    │   │   └── OrderItem.types.ts
+    │   │   └── OrderItem.tsx        # inline presenter, controller, use case
     │   ├── OrdersResourcePicker.tsx
     │   └── OrdersStatistics.tsx
     ├── hooks                       # use cases, selectors
     │   ├── useDeleteOrderUseCase
     │   │   └── useDeleteOrderUseCase.ts
     │   ├── useIsDeleteOrderMutatingSelector.ts
-    │   ├── useIsOrdersMutatingSelector.ts
-    │   ├── useIsOrdersProcessingSelector
-    │   │   └── useIsOrdersProcessingSelector.ts
-    │   ├── useItemByIdSelector.ts
     │   ├── useOrderByIdSelector
     │   │   └── useOrderByIdSelector.ts
-    │   ├── useOrderIdsSelector
-    │   │   └── useOrderIdsSelector.ts
-    │   ├── useOrdersResourceSelector.ts
-    │   ├── useOrdersSelector.ts
-    │   └── useTotalItemsQuantitySelector
-    │       └── useTotalItemsQuantitySelector.ts
-    ├── Orders                      # user interface, presenter, controller
-    │   ├── hooks
-    │   │   ├── useController.ts
-    │   │   └── usePresenter.ts
-    │   ├── Orders.tsx
-    │   └── Orders.types.ts
+    │   └── useOrdersSelector.ts
+    ├── Orders
+    │   └── Orders.tsx              # user interface + inline presenter
     ├── repositories                # repository, gateway interface, gateway implementations
     │   └── ordersRepository
     │       ├── ordersRepository.ts
     │       ├── ordersRepository.types.ts
     │       ├── ordersRepository.utils.ts
-    │       └── OrdersService
-    │           ├── InMemoryOrdersService
-    │           │   ├── InMemoryOrdersService.ts
-    │           │   └── makeOrderEntitiesMock.ts
-    │           ├── OrdersService.ts
-    │           └── RemoteOrdersService
-    │               ├── mappers.ts
-    │               └── RemoteOrdersService.ts
+    │       └── OrdersService       # resource selection + gateway implementations
     ├── stores                      # application business entity
     │   ├── OrdersPresentationEntity.types.ts
     │   └── ordersPresentationSlice.ts
