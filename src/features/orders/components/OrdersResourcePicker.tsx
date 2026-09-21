@@ -1,25 +1,27 @@
-import { useCallback, type FC } from "react";
-import { useAppDispatch } from "../../../hooks";
+import type { FC } from "react";
+import { useAppDispatch, useAppSelector } from "../../../hooks";
 import { setOrdersResource } from "../stores";
 import { isOrdersResource } from "../utils";
-import { useOrdersResourceSelector } from "../hooks";
 import { ordersRepository } from "../repositories";
 
 export const OrdersResourcePicker: FC = () => {
-  const resource = useOrdersResourceSelector();
+  const resource = useAppSelector((state) => state.ordersPresentation.ordersResource);
   const dispatch = useAppDispatch();
-  const radioInputChanged = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      if (!isOrdersResource(value)) {
-        return;
-      }
-      dispatch(setOrdersResource(value));
-      dispatch(ordersRepository.util.resetApiState());
-    },
-    [dispatch],
-  );
 
+  // presenter
+  const isLocalChecked = resource === "local";
+  const isRemoteChecked = resource === "remote";
+
+  // controller
+  const radioInputChanged = (value: string) => {
+    if (!isOrdersResource(value)) {
+      return;
+    }
+    dispatch(setOrdersResource(value));
+    dispatch(ordersRepository.util.resetApiState());
+  };
+
+  // user interface
   return (
     <div className="join">
       <input
@@ -28,8 +30,8 @@ export const OrdersResourcePicker: FC = () => {
         name="orders-resource"
         aria-label="Local"
         value="local"
-        checked={resource === "local"}
-        onChange={radioInputChanged}
+        checked={isLocalChecked}
+        onChange={(event) => radioInputChanged(event.target.value)}
       />
       <input
         className="join-item btn btn-sm"
@@ -37,8 +39,8 @@ export const OrdersResourcePicker: FC = () => {
         name="orders-resource"
         aria-label="Remote"
         value="remote"
-        checked={resource === "remote"}
-        onChange={radioInputChanged}
+        checked={isRemoteChecked}
+        onChange={(event) => radioInputChanged(event.target.value)}
       />
     </div>
   );
