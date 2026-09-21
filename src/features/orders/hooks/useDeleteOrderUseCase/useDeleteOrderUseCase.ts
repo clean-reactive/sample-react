@@ -6,6 +6,10 @@ import {
   makeDeleteOrderFixedCacheKey,
 } from "../../repositories";
 
+/**
+ * Application-level delete operation. It owns mutation orchestration and the
+ * error boundary, keeping those concerns out of the controller and repository.
+ */
 export const useDeleteOrderUseCase = (params: { orderId: OrderEntityId }): UseCase => {
   const [deleteOrder] = useDeleteOrderMutation({
     fixedCacheKey: makeDeleteOrderFixedCacheKey(params.orderId),

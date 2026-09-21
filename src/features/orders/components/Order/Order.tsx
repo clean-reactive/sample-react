@@ -5,13 +5,17 @@ import { deleteOrderButtonTestId, orderTestId } from "../../testIds";
 import { useController, usePresenter } from "./hooks";
 
 export const Order: FC<OrderParams> = memo((props) => {
+  // presenter
   const presenter = usePresenter(props);
+
+  // controller
   const controller = useController(props);
 
   if (!presenter.hasOrder) {
     return null;
   }
 
+  // user interface
   return (
     <div className="card bg-base-200 shadow-md" data-testid={orderTestId}>
       <div className="card-body p-4 gap-3">

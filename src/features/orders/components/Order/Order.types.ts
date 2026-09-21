@@ -4,6 +4,10 @@ export interface OrderParams {
   orderId: OrderEntityId;
 }
 
+/**
+ * Presenter contract consumed by Order's JSX. Each property is a behaviorless
+ * ViewModel value.
+ */
 export interface Presenter {
   hasOrder: boolean;
   orderId: string;
@@ -13,6 +17,7 @@ export interface Presenter {
   isDeleteOrderButtonDisabled: boolean;
 }
 
+/** User interactions emitted by Order's JSX. */
 export interface Controller {
   deleteOrderButtonClicked: () => void;
 }
