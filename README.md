@@ -1,3 +1,7 @@
+
+
+https://github.com/user-attachments/assets/5421d82b-8fc5-46b3-b756-c6f25104f372
+
 # Clean Reactive Architecture — React Sample
 
 A sample application that demonstrates
@@ -14,7 +18,7 @@ the diagram to idiomatic React code.
 <details>
 <summary><b>Watch the demo</b></summary>
 
-<!-- Add the demo video link here. -->
+https://github.com/user-attachments/assets/3023dadc-cfcf-4e3d-a23e-c04c1812ebbe
 
 </details>
 
