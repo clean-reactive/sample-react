@@ -11,6 +11,13 @@ the diagram to idiomatic React code.
 
 > :bulb: **Multiple data resources.** The repository accesses either an in-memory resource or a remote API through the same gateway contract. This demonstrates substituting resource implementations without changing the consuming units. Multiple resources and runtime switching are included for demonstration purposes, not required by the architecture.
 
+<details>
+<summary><b>Watch the demo</b></summary>
+
+<!-- Add the demo video link here. -->
+
+</details>
+
 ## Getting started
 
 Install dependencies:
